@@ -1,0 +1,35 @@
+{
+  "name": "imap-pop",
+  "version": "0.0.0",
+  "description": "A small library for POP3 and IMAP client",
+  "main": "index.js",
+  "scripts": {
+    "test": "make test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/belmer/imap-pop.git"
+  },
+  "keywords": [
+    "POP3",
+    "IMAP",
+    "poplib",
+    "mailparser",
+    "maillistener"
+  ],
+  "author": "Belmer Salonoy <dna.belmer@gmail.com> (http://www.drumbi.com/)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/belmer/imap-pop/issues"
+  },
+  "homepage": "https://github.com/belmer/imap-pop",
+  "devDependencies": {
+    "chai": "^3.3.0",
+    "mocha": "^2.3.3"
+  },
+  "dependencies": {
+    "mailparser": "^0.5.2",
+    "pop3": "^0.2.0",
+    "poplib": "^0.1.7"
+  }
+}
