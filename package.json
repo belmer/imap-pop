@@ -28,6 +28,8 @@
     "mocha": "^2.3.3"
   },
   "dependencies": {
+    "mail-listener": "^0.7.1",
+    "mail-listener2": "^0.1.8",
     "mailparser": "^0.5.2",
     "pop3": "^0.2.0",
     "poplib": "^0.1.7"

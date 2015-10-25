@@ -4,14 +4,27 @@ var EventEmitter = require("events").EventEmitter;
 var util = require('util');
 var pop3=require('poplib');
 var MailParser=require('mailparser').MailParser;
+var notifier=require('mail-notifier');
+
 var mailparser=new MailParser();
 
 module.exports.POP3=POP3;
 module.exports.IMAP=IMAP;
 
-function IMAP()
+function IMAP(options)
 {
-  // body...
+  var self=this;
+
+  this.mailparser=new MailParser();
+  this.mails=[];
+  this.imap={
+    username: options.username,
+    password: options.password,
+    host: options.host,
+    port: options.port ? options.port : 993,
+    tls:true,
+    tlsOptions: { rejectUnauthorized: false }
+  }
 }
 
 function POP3 (options)
@@ -23,11 +36,13 @@ function POP3 (options)
   this.debug = options.debug ? options.debug : true;
   this.port = options.port ? options.port : 995;
   this.host = options.host;
+  this.interval=options.inteval ? options.interval : 5000;//default interval is 5 seconds
   this.username = options.username;
   this.password = options.password;
   this.totalmsgcount=0;
   this.mails=[];
   this.currmsg=0;
+  this.isValidState=true;
   this.pop_client=new pop3(this.port,this.host,
   {
     tlserrs:this.tlserrs,
@@ -40,14 +55,17 @@ function POP3 (options)
 util.inherits(POP3, EventEmitter);
 util.inherits(IMAP, EventEmitter);
 
-IMAP.prototype.escape=function(html)
+
+IMAP.prototype.start=function()
 {
-  return String(html)
-    .replace(/&/g, '&amp;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+  var self=this;
+
+  notifier(self.imap).on('mail',function(mail)
+  {
+    self.emit('imap:mail',mail);
+
+  }).start();
+
 }
 
 POP3.prototype.connect= function (){
@@ -58,15 +76,23 @@ POP3.prototype.connect= function (){
     self.pop_client.login(self.username,self.password);
   });
 
+  self.pop_client.on("invalid-state", function(cmd) {
+  	console.log("Invalid state, failed. You tried calling " + cmd);
+    // self.pop_client.quit();
+
+  });
+
   self.pop_client.on('locked',function (cmd) {
     console.log('Current command has not finished yet. You tried calling '+cmd);
+    // self.pop_client.quit();
+
   });
 
   self.pop_client.on('login',function (status,rawdata){
     if(status){
 
       console.log('LOGIN/PASS success');
-      self.emit('connected',true);
+      self.emit('pop:connected',true);
 
     }else{
 
@@ -75,6 +101,23 @@ POP3.prototype.connect= function (){
     }
   });
 
+}
+
+POP3.prototype.start=function(pop)
+{
+  var self=this;
+
+  var _interval=this.interval;
+
+  setInterval(function()
+  {
+    if(self.isValidState)
+      self.retrieve();
+    else
+    {
+      self.connect();
+    }
+  },_interval);
 }
 
 POP3.prototype.retrieve=function (){
@@ -92,7 +135,7 @@ POP3.prototype.retrieve=function (){
     } else if (msgcount > 0)
     {
 
-      self.emit('retrieving',true);
+      self.emit('pop:retrieving',true);
       self.totalmsgcount = msgcount;
       self.currmsg = 1;
       console.log("LIST success with " + msgcount + " message(s)");
@@ -102,7 +145,7 @@ POP3.prototype.retrieve=function (){
     } else {
 
       console.log("LIST success with 0 message(s)");
-      self.emit('zero_message',true);
+      self.emit('pop:zero_message',true);
       self.pop_client.quit();
 
     }
@@ -135,7 +178,7 @@ POP3.prototype.retrieve=function (){
       if (self.currmsg > self.totalmsgcount){
 
         console.log('TOTAL mails '+self.mails.length);
-        self.emit('retrieve_done',self.mails);
+        self.emit('pop:retrieve_done',self.mails);
 
         self.pop_client.quit();
       }
@@ -148,6 +191,10 @@ POP3.prototype.retrieve=function (){
       console.log('DELE failed for msgnumber '+msgnumber);
       self.pop_client.quit();
     }
+  });
+
+  self.pop_client.on("error",function(err){
+      self.emit('pop:error',err);
   });
 
   self.pop_client.on("rset", function(status,rawdata) {
@@ -163,6 +210,7 @@ POP3.prototype.retrieve=function (){
   self.mailparser.on('end',function(mail){
 
     self.mails.push(mail);
+    self.emit("pop:mail",mail);
 
   });
 
