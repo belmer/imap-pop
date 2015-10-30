@@ -15,3 +15,13 @@ imap.on('imap:mail',function(mail)
 {
   console.log(mail);
 });
+
+setTimeout(function(){
+  console.log('Timedout');
+  imap.stop();
+},3000)
+
+imap.on('imap:stop',function(mail)
+{
+  console.log('stop triggered.');
+});
