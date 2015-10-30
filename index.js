@@ -56,7 +56,7 @@ util.inherits(POP3, EventEmitter);
 util.inherits(IMAP, EventEmitter);
 
 
-IMAP.prototype.start=function()
+IMAP.prototype.start=function(callback)
 {
   var self=this;
 
@@ -66,6 +66,7 @@ IMAP.prototype.start=function()
 
   }).start();
 
+  callback(null,true);
 }
 
 POP3.prototype.connect= function (){
