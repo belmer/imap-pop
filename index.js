@@ -68,7 +68,7 @@ IMAP.prototype.start=function(callback)
   }).start();
 
   this._notifier(self.imap).on('end',function(){
-    self.emit('imap:stop',mail);
+    self.emit('imap:stop',true);
   });
 
   callback(null,true);
