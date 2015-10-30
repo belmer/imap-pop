@@ -25,6 +25,7 @@ function IMAP(options)
     tls:true,
     tlsOptions: { rejectUnauthorized: false }
   }
+  this._notifier=notifier;
 }
 
 function POP3 (options)
@@ -60,13 +61,22 @@ IMAP.prototype.start=function(callback)
 {
   var self=this;
 
-  notifier(self.imap).on('mail',function(mail)
+  this._notifier(self.imap).on('mail',function(mail)
   {
     self.emit('imap:mail',mail);
 
   }).start();
 
+  this._notifier(self.imap).on('end',function(){
+    self.emit('imap:stop',mail);
+  });
+
   callback(null,true);
+}
+
+IMAP.prototype.stop=function(){
+  var self=this;
+  this._notifier.stop();
 }
 
 POP3.prototype.connect= function (){
