@@ -82,7 +82,7 @@ IMAP.prototype.stop=function()
   });
 
   self._notifier.on('error',function(){
-    self.emit('imap:error',true);
+    self.emit('imap:error',err);
   });
 }
 
