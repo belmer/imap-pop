@@ -80,6 +80,10 @@ IMAP.prototype.stop=function()
   self._notifier.on('end',function(){
     self.emit('imap:stop',true);
   });
+
+  self._notifier.on('error',function(){
+    self.emit('imap:error',true);
+  });
 }
 
 POP3.prototype.connect= function (){
