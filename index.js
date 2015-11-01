@@ -73,15 +73,16 @@ IMAP.prototype.start=function(callback)
 
 IMAP.prototype.stop=function()
 {
-  console.log('Closing IMAP connection.');
+
   var self=this;
+  console.log('Closing IMAP connection.');
   self._notifier.stop();
 
   self._notifier.on('end',function(){
     self.emit('imap:stop',true);
   });
 
-  self._notifier.on('error',function(){
+  self._notifier.on('error',function(err){
     self.emit('imap:error',err);
   });
 }
