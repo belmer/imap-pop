@@ -78,6 +78,8 @@ IMAP.prototype.stop=function()
   console.log('Closing IMAP connection.');
   self._notifier.stop();
 
+  self.emit('imap:stop',true);
+
   self._notifier.on('end',function(){
     self.emit('imap:stop',true);
   });
